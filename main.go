@@ -18,10 +18,10 @@ func main() {
 
 	var cfg apiConfig
 
-	mux.Handle("/app", cfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
-	mux.HandleFunc("/healthz", handlerHealth)
-	mux.HandleFunc("/metrics", cfg.handlerMetrics)
-	mux.HandleFunc("/reset", cfg.handlerResetMetrics)
+	mux.Handle("/app/", cfg.middlewareMetricsInc(http.StripPrefix("/app/", http.FileServer(http.Dir(".")))))
+	mux.HandleFunc("GET /api/healthz", handlerHealth)
+	mux.HandleFunc("GET /api/metrics", cfg.handlerMetrics)
+	mux.HandleFunc("POST /api/reset", cfg.handlerResetMetrics)
 
 	err := httpServer.ListenAndServe()
 	if err != nil {
