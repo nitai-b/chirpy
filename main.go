@@ -18,10 +18,10 @@ func main() {
 
 	var cfg apiConfig
 
-	mux.Handle("/app/", cfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
+	mux.Handle("/app", cfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
 	mux.HandleFunc("/healthz", handlerHealth)
-	mux.HandleFunc("/metrics", handlerMetrics)
-	mux.HandleFunc("/reset", handlerResetMetrics)
+	mux.HandleFunc("/metrics", cfg.handlerMetrics)
+	mux.HandleFunc("/reset", cfg.handlerResetMetrics)
 
 	err := httpServer.ListenAndServe()
 	if err != nil {
@@ -39,11 +39,9 @@ func handlerHealth(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlerMetrics(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-
-	var cfg apiConfig
 
 	_, err := w.Write([]byte("Hits: " + strconv.Itoa(int(cfg.fileServerHits.Load()))))
 	if err != nil {
@@ -51,11 +49,10 @@ func handlerMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlerResetMetrics(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerResetMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
-	var cfg apiConfig
 	cfg.fileServerHits.Store(0)
 
 	_, err := w.Write([]byte("Hits: " + strconv.Itoa(int(cfg.fileServerHits.Load()))))
